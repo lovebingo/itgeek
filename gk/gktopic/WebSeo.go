@@ -17,11 +17,11 @@ func tmpHome() string {
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>ITGeek 首页</title>
+    <title></title>
 	<meta name="keywords" content="Go,Golang,Go语言">
 	<meta name="description" content="Go语言中文网，中国 Golang 社区，Go语言学习园地，致力于构建完善的 Golang 中文社区，Go语言爱好者的学习家园。分享 Go 语言知识，交流使用经验">
   </head>
-<ul>
+<ul siteId="{{.SiteId}}">
 {{range .list}}<li><a href="/p/topic/detail,{{.Id}},{{.UserId}}">{{.Title}}</a></li>{{end}}
 </ul>
 共有{{.total}}条记录</html>
@@ -86,6 +86,7 @@ func init() {
 func WebSeoHome(ctx *gin.Context) {
 	data := make(map[string]interface{})
 	SiteId := ws.SiteId(ctx)
+	data["SiteId"] = SiteId
 	data["list"], _ = ws.TopicDao.Top1000(SiteId, )
 	data["total"], _, _ = ws.TopicDao.Count(SiteId, )
 	e := tplHome.Execute(ctx.Writer, data)
@@ -95,25 +96,33 @@ func WebSeoHome(ctx *gin.Context) {
 }
 
 func WebSeoDetail(ctx *gin.Context) {
-	SiteId := ws.SiteId(ctx)
-	p := ctx.Param("p")
-	pp := strings.Split(p, ",")
-	if len(pp) == 2 {
-		d, b, _ := ws.TopicDao.FindById(SiteId, pp[0], pp[1])
-		if b {
-			data := make(map[string]interface{})
-			data["detail"] = d
-			data["list"], _ = ws.ReplyDao.List(SiteId, pp[0])
 
-			e := tplDetail.Execute(ctx.Writer, data)
-			if e != nil {
-				seelog.Error(e)
+	ua :=ws. GetUa(ctx)
+	if ua == "web" {
+		ctx.Data(200, "text/html;charset=utf-8", [] byte(HtmlWeb))
+	} else if ua == "h5" {
+		ctx.Data(200, "text/html;charset=utf-8", [] byte(HtmlH5))
+	} else {
+		SiteId := ws.SiteId(ctx)
+		p := ctx.Param("p")
+		pp := strings.Split(p, ",")
+		if len(pp) == 2 {
+			d, b, _ := ws.TopicDao.FindById(SiteId, pp[0], pp[1])
+			if b {
+				data := make(map[string]interface{})
+				data["detail"] = d
+				data["list"], _ = ws.ReplyDao.List(SiteId, pp[0])
+
+				e := tplDetail.Execute(ctx.Writer, data)
+				if e != nil {
+					seelog.Error(e)
+				}
+			} else {
+				seelog.Error("topic not exist,", SiteId, pp)
 			}
 		} else {
-			seelog.Error("TopicDao not exist,", pp)
+			seelog.Error("param error.", p)
 		}
-	} else {
-		seelog.Error("param error.", p)
 	}
 }
 

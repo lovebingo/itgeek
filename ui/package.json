@@ -6,8 +6,10 @@
   "scripts": {
     "init": "webpack --progress --config build/webpack.dev.config.js",
     "dev-web": "webpack-dev-server --disableHostCheck true --content-base ./web/ --open http://127.0.0.1/ --inline --hot --compress --config build/web-dev.js",
-    "dev-m": "webpack-dev-server --port 8282 --disableHostCheck true --content-base ./m/ --open http://test.ecdiy.cn:82/ --inline --hot --compress --config build/m-dev.js",
+    "dev-m": "webpack-dev-server --port 8282 --disableHostCheck true --content-base ./m/ --open http://127.0.0.1:82/ --inline --hot --compress --config build/m-dev.js",
+    "dev-admin": "webpack-dev-server --port 8081 --disableHostCheck true --content-base ./admin/ --open http://127.0.0.1:81/ --inline --hot --compress --config build/web-dev.js",
     "build-web": "webpack --progress --hide-modules --config build/web-prod.js",
+    "build-admin": "webpack --progress --hide-modules --config build/admin-prod.js",
     "build-m": "webpack --progress --hide-modules --config build/m-prod.js",
     "lint": "eslint --fix --ext .js,.vue src"
   },
@@ -15,8 +17,9 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
+    "babel-polyfill": "^6.26.0",
     "cropperjs": "^1.2.2",
-    "iview": "^2.14.3",
+    "iview": "^3.0.0",
     "js-cookie": "^2.2.0",
     "mavon-editor": "^2.6.11",
     "tinymce": "^4.7.4",

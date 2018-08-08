@@ -3,8 +3,9 @@ package ws
 var (
 	TopicDao         = &DaoTopic{}
 	TopicCategoryDao = &DaoTopicCategory{}
-	FavDao           = &DaoFav{}
+
 	FollowDao        = &DaoFollow{}
+	AppendDao        = &DaoTopicAppend{}
 )
 
 type DaoTopicCategory struct {
@@ -19,9 +20,9 @@ type DaoTopicCategory struct {
 	UpName func(name string, Id, SiteId int64) (int64, error) `update Category set Name=? where Id=? and SiteId=? `
 }
 
-
-
 type DaoTopic struct {
+	FindBase func(SiteId, Id int64) (map[string]string, bool, error) `select Title,UserId,Id from Topic where SiteId=? and Id=?`
+
 	UpCategory func(toId, catId, siteId int64) (int64, error) `update Topic set CategoryId=? where CategoryId=? and SiteId=?`
 
 	Find          func(id interface{}) (map[string]string, bool, error)   `select Id,Title,UserId from Topic where Id=?`
@@ -40,16 +41,14 @@ type DaoTopic struct {
 
 	List func(SiteId int64, start int64) ([]map[string]string, error) `select t.Id,t.Title,t.Username,t.UserId,fmt(t.CreateAt)CreateAt,c.Name CategoryName,
 		t.CategoryId,t.ReplyCount,t.ReplyUsername,t.ReplyUserId,ifnull(t.ReplyTime,t.CreateAt)ReplyTime from Topic t left join Category c on t.CategoryId=c.Id 
-							where t.SiteId=?  order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
+							where t.SiteId=? order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
 
 	Top1000 func(SiteId int64, ) ([]map[string]string, error) `select Id,Title,UserId,date_format(ifnull(ReplyTime,CreateAt),'%Y-%m-%d %H:%i:%S') CreateAt from Topic where  SiteId=? order by Id desc limit 0,1000`
 
-	//Top1000 func() ([]map[string]string, error) `select t.Id,t.Title,t.Username,t.UserId,fmt(t.CreateAt) CreateAt,c.Name CategoryName,t.CategoryId,t.ReplyCount,t.ReplyUsername,t.ReplyUserId,ifnull(t.ReplyTime,t.CreateAt)ReplyTime from Topic t left join Category c on t.CategoryId=c.Id
-	//							  order by ifnull(t.ReplyTime,t.CreateAt) desc limit 0,1000`
 
 	ListBySub func(SiteId int64, id, start interface{}) ([]map[string]string, error) `select t.Id,t.Title,t.Username,t.UserId,fmt(t.CreateAt) CreateAt,c.Name CategoryName,t.CategoryId,t.ReplyCount,t.ReplyUsername,t.ReplyUserId,ifnull(t.ReplyTime,t.CreateAt)ReplyTime 
 		from Topic t left join Category c on t.CategoryId=c.Id 
-		where t.SiteId=? and CategoryId=? order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
+		where t.SiteId=? and t.CategoryId=? order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
 
 	ListByParent func(SiteId int64, parentId, start interface{}) ([]map[string]string, error) `select t.Id,t.Title,t.Username,t.UserId,fmt(t.CreateAt) CreateAt,c.Name CategoryName,t.CategoryId,t.ReplyCount,t.ReplyUsername,t.ReplyUserId,ifnull(t.ReplyTime,t.CreateAt)ReplyTime
 		from Topic t left join Category c on t.CategoryId=c.Id 
@@ -64,17 +63,6 @@ type DaoTopic struct {
 	HotAll   func(SiteId int64, ) ([]map[string]string, error) `select Id,UserId,Title,ShowTimes from Topic where SiteId=? Order by ShowTimes desc limit 0,10`
 }
 
-type DaoFav struct {
-	List func(SiteId int64, UserId, start int64) ([]map[string]string, error) `select t.Id,t.Title,t.Username,t.UserId,fmt(t.CreateAt)CreateAt,c.Name CategoryName,t.CategoryId,t.ReplyCount,t.ReplyUsername,t.ReplyUserId,ifnull(t.ReplyTime,t.CreateAt)ReplyTime
-								from Topic t left join Category c on t.CategoryId=c.Id 
-								where t.SiteId=? and t.Id in (select EntityId from Fav where UserId=?)
-								order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
-
-	Count func(SiteId int64, UserId int64) (int64, bool, error)                 `select count(*) from Fav where SiteId=? and UserId=? `
-	Exist func(SiteId int64, UserId int64, Id interface{}) (int64, bool, error) `select count(*) from Fav where SiteId=? and UserId=? and EntityId=?`
-	Del   func(SiteId int64, UserId int64, Id interface{}) (int64, error)       `delete from Fav where SiteId=? and UserId=? and EntityId=?`
-	Save  func(SiteId int64, UserId int64, Id interface{}) (int64, error)       `INSERT INTO Fav(SiteId,UserId,EntityId,CreateAt)VALUES(?,?,?,now())`
-}
 type DaoFollow struct {
 	Exist    func(SiteId int64, Id int64, UserId interface{}) (int64, bool, error) `select count(*) from Follow where SiteId=? and FollowId=? and UserId=?`
 	Follow   func(SiteId int64, FollowId, UserId int64) (int64, error)             `INSERT INTO Follow (SiteId,FollowId,UserId,CreateAt)VALUES(?,?,?,now())`
@@ -85,4 +73,12 @@ type DaoFollow struct {
 								from Topic t left join Category c on t.CategoryId=c.Id 
 								where t.SiteId=? and t.UserId in (select FollowId from Follow where UserId=?)
 								order by ifnull(t.ReplyTime,t.CreateAt) desc limit ?,20`
+}
+
+type DaoTopicAppend struct {
+	List func(SiteId, TopicId int64) ([]map[string]string, error) `select Id,fmt(CreateAt)CreateAt,AppendText from TopicAppend where SiteId=? and TopicId=?`
+
+	Count func(SiteId, TopicId int64) (int64, bool, error) `select count(*) from TopicAppend where SiteId=? and TopicId=?`
+
+	Add func(SiteId, TopicId int64, AppendText string) (int64, error) `INSERT INTO  TopicAppend(SiteId,TopicId,AppendText,CreateAt)VALUES(?,?,?,now())`
 }

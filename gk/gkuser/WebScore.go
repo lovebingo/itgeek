@@ -6,14 +6,17 @@ import (
 	"github.com/ecdiy/itgeek/gk/ws"
 )
 
-func ChangeScore(siteId int64, entityId, scoreType, scoreDesc string, fee int64, userId int64) (int64, int64, error) {
+func ChangeScore(siteId int64, entityId, scoreType, scoreDesc string, fee int64, userId int64) (int64, int64, bool, error) {
 	sc, _, _ := ws.UserDao.Score(siteId, userId)
 	score := fee + sc
-	id, e := ws.ScoreLog.Add(siteId, score, scoreType, scoreDesc, entityId, fee, userId)
-	if id > 0 {
-		ws.UserDao.UpScore(score, userId, siteId)
+	if score > 0 {
+		id, e := ws.ScoreLog.Add(siteId, score, scoreType, scoreDesc, entityId, fee, userId)
+		if id > 0 {
+			ws.UserDao.UpScore(score, userId, siteId)
+			return id, score, true, e
+		}
 	}
-	return id, score, e
+	return 0, score, false, nil
 }
 
 func GenerateRangeNum(min, max int) int64 {
@@ -21,23 +24,31 @@ func GenerateRangeNum(min, max int) int64 {
 	return int64(rand.Intn(max-min) + min)
 }
 
-func WebScoreLoginAward(userId int64, param *ws.Param, res map[string]interface{}) {
-	res["LoginAward"], _, _ = ws.UserDao.LoginAward(param.SiteId, userId)
+func WebScoreLoginAwardStatus(auth *ws.Web) {
+	//LoginAward,LoginDay,AwardDate
+	res, rb, e := ws.UserDao.LoginAward(auth.SiteId, auth.UserId)
+	if e == nil && rb {
+		auth.Out["LoginAward"] = res["LoginAward"]
+		auth.Out["today"] = time.Now().Format("2006-01-02")
+		auth.Out["loginDay"] = res["LoginDay"]
+		//if auth.Out["LoginAward"] == "1" {
+		//
+		//}
+	}
 }
-func WebScoreLoginAwardDo(userId int64, param *ws.Param, res map[string]interface{}) {
+func WebScoreLoginAwardDo(auth *ws.Web) {
 	val := GenerateRangeNum(5, 50)
 	t := time.Now().Format("2006-01-02")
-	id, score, _ := ChangeScore(param.SiteId, t, "每日登录奖励", t+"的每日登录奖励", val, userId)
+	id, score, _, _ := ChangeScore(auth.SiteId, t, "每日登录奖励", t+"的每日登录奖励", val, auth.UserId)
 	if id > 0 {
-		ws.UserDao.LoginAwardDo(param.SiteId, userId)
+		ws.UserDao.LoginAwardDo(auth.SiteId, auth.UserId)
 	}
-	res["Id"] = id
-	res["Score"] = score
+	auth.Out["Id"] = id
+	auth.Out["Score"] = score
+	WebScoreLoginAwardStatus(auth)
 }
 
-func WebScoreLogList(userId int64, param *ws.Param, res map[string]interface{}) {
-	page := param.Int64("page", 1)
-	page = (page - 1) * 20
-	res["total"], _, _ = ws.ScoreLog.Count(param.SiteId, userId)
-	res["list"], _ = ws.ScoreLog.List(param.SiteId, userId, page)
+func WebScoreLogList(auth *ws.Web) {
+	auth.Out["total"], _, _ = ws.ScoreLog.Count(auth.SiteId, auth.UserId)
+	auth.Out["list"], _ = ws.ScoreLog.List(auth.SiteId, auth.UserId, auth.Start())
 }

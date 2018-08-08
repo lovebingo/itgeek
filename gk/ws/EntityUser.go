@@ -23,19 +23,23 @@ type DaoUser struct {
 
 	SetPasswordError func(PasswordError interface{}, username string, SiteId int64) (int64, error) `update GkUser set PasswordError=?,LoginDate=now() where Username=? and SiteId=?  `
 
+	UpPassword func(p string, userId, siteId int64) (int64, error) `update GkUser set Password=? where Id=? and SiteId=?`
+
 	UpTopic  func(tc, UserId int64, SiteId int64) (int64, error)      `update GkUser set TopicCount=?,ModifyAt=now() where Id=? and SiteId=? `
 	UpReply  func(rc, UserId int64, SiteId int64) (int64, error)      `update GkUser set ReplyCount=?,ModifyAt=now() where Id=? and SiteId=? `
 	UpFav    func(rc, UserId int64, SiteId int64) (int64, error)      `update GkUser set FavCount=?,ModifyAt=now() where Id=? and SiteId=? `
 	UpFollow func(rc, UserId int64, SiteId int64) (int64, error)      `update GkUser set FollowCount=?,ModifyAt=now() where Id=? and SiteId=? `
 	UpMsg    func(UserId, UserId2 int64, SiteId int64) (int64, error) `update GkUser set MsgCount=(select count(*) from Msg where UserId=? and status=0) where Id=? and SiteId=? `
 
-	LoginAward func(SiteId int64, userId int64) (int, bool, error)   `select LoginAward from GkUser where SiteId=? and  Id=?`
-	Score      func(SiteId int64, userId int64) (int64, bool, error) `select Score from GkUser where SiteId=? and Id=?`
+	LoginAward func(SiteId int64, userId int64) (map[string]string, bool, error) `select LoginAward,LoginDay from GkUser where SiteId=? and  Id=?`
+	Score      func(SiteId int64, userId int64) (int64, bool, error)             `select Score from GkUser where SiteId=? and Id=?`
 
-	UpScore      func(sc, userId, siteId int64) (int64, error)   `update GkUser set Score=? where Id=? and SiteId=?`
-	LoginAwardDo func(SiteId int64, userId int64) (int64, error) `update GkUser set LoginAward=0 where SiteId=? and Id=? and LoginAward=1`
+	UpScore func(sc, userId, siteId int64) (int64, error) `update GkUser set Score=? where Id=? and SiteId=?`
 
-	Dau      func(SiteId int64, ) ([]map[string]string, error)           `select Dau,Id,Username,Info from GkUser where SiteId=? and  Dau>0 order by Dau desc limit 0,10`
+	LoginAwardDo func(SiteId int64, userId int64) (int64, error) `update GkUser set LoginAward=0,LoginDay=LoginDay+1 where SiteId=? and Id=? and LoginAward=1`
+
+	Dau func(SiteId int64, ) ([]map[string]string, error) `select Dau,Id,Username,Info from GkUser where SiteId=? and Dau>0 order by Dau desc limit 0,10`
+
 	DauOrder func(SiteId int64, userId interface{}) (int64, bool, error) `select count(*)+1 DauOrder from GkUser where SiteId=? and  Dau>(select Dau from GkUser where Id=?)`
 	DauAdd   func(SiteId int64, userId int64) (int64, error)             `update GkUser set Dau=Dau+1 where SiteId=? and Id=?`
 
@@ -86,7 +90,7 @@ type DaoMsg struct {
 }
 
 type DaoToken struct {
-	Del  func(ua, userId interface{}, SiteId int64) (int64, error)        `delete from GkToken where Ua=? and UserId=? and SiteId=?`
-	Add  func(UserId, Ua, Token interface{}, SiteId int64) (int64, error) `insert into GkToken(UserId,Ua,Token,CreateAt,SiteId)VALUES(?,?,?,now(),?)`
-	Find func(SiteId, userId int64, ua string) (string, bool, error)      `select Token from GkToken where SiteId=? and UserId=? and Ua=? `
+	Del  func(SiteId, userId int64, ua string) (int64, error)        `delete from GkToken where SiteId=? and UserId=? and Ua=?`
+	Add  func(SiteId, UserId int64, Ua, Token string) (int64, error) `insert into GkToken(SiteId,UserId,Ua,Token,CreateAt)VALUES(?,?,?,?,now())`
+	Find func(SiteId, userId int64, ua string) (string, bool, error) `select Token from GkToken where SiteId=? and UserId=? and Ua=? `
 }

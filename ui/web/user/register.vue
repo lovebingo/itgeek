@@ -43,9 +43,7 @@
 export default {
     data() {
         return {
-            authImg: "",
-            reg: {},
-
+            authImg: "", reg: {},
             em: {Username: '', Email: '', Mobile: '', Password: '', CaptchaVal: ''},
         }
     }, created() {
@@ -91,7 +89,7 @@ export default {
         },
         loadCaptcha() {
             this.ajax('/gk-user/CaptchaNew', {}, (r, th) => {
-                th.CaptchaId = r.Result;
+                th.CaptchaId = r.result[0];
                 th.authImg = "/api/gk-user/Captcha?t=" + th.CaptchaId;
             });
         },
@@ -101,29 +99,30 @@ export default {
             }
             this.reg["CaptchaId"] = this.CaptchaId;
             this.ajax('/gk-user/Register', this.reg, function (r, th) {
-                if (r.Status && (!r.Status.Code || r.Status.Code == 0)) {
-                    Cookies.set('token', r.Result);
-                    window.gk.user = r.Info;
-                    window.gk.login = true;
+                if (r.code == 0) {
+                    gk.user = r.result[0];
+                    gk.login = true;
+                    Cookies.set('webToken', gk.user.Token, {expires: 365});
+
                     th.$Modal.success({
                         title: "", content: "注册成功",
                         onOk() {
-                            vm.$router.replace('/')
+                            vm.$router.push({path: "/"});
                         }
                     });
                 } else {
                     th.regCap = "";
                     th.reg.CaptchaVal = "";
-                    if (r.Status.Code == 8) {
-                        th.em.CaptchaVal = r.Status.Msg;
+                    if (r.code == 8) {
+                        th.em.CaptchaVal = r.msg;
                     }
-                    if (r.Status.Code == 1000) {
-                        th.em.Username = r.Status.Msg;
+                    if (r.code == 1000) {
+                        th.em.Username = r.msg;
                     }
-                    if (r.Status.Code == 1002) {
-                        th.em.Email = r.Status.Msg;
+                    if (r.code == 1002) {
+                        th.em.Email = r.msg;
                     }
-                    th.CaptchaId = r.Result;
+                    th.CaptchaId = r.result[0];
                     th.authImg = "/api/gk-user/Captcha?t=" + th.CaptchaId;
                 }
             });

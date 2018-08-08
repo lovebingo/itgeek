@@ -5,6 +5,7 @@ import App from './libs/frame/app.vue';
 import axios from "axios";
 import Cookies from 'js-cookie';
 import 'iview/dist/styles/iview.css';
+import "babel-polyfill";
 
 Vue.use(iView);
 
@@ -17,7 +18,7 @@ Vue.prototype.avatar = function (id) {
     return '/avatar/' + gk.siteId + '/' + id + '/48.png?t=' + window.avatarVer
 }
 
-Vue.prototype.ajax = function (url, p, fun) {
+Vue.prototype.ajax = function (url, p, fun, goUrl) {
     let th = this;
     axios.post('/api' + url, p ? p : {}).then(function (r) {
         for (var k in r.data) {
@@ -27,16 +28,23 @@ Vue.prototype.ajax = function (url, p, fun) {
         if (th.hasOwnProperty("loading")) {
             th.loading = false;
         }
-        if (fun && typeof(fun) == 'function') {
-            fun(r.data, th)
-            vm.$emit("data", window.gk)
+        if (fun) {
+            if (typeof(fun) == 'function') {
+                fun(r.data, th)
+                vm.$emit("data", window.gk)
+                if (goUrl && typeof(fun) == 'string') {
+                    th.$router.replace('/p/' + goUrl)
+                }
+            } else {
+                th.$router.replace('/p/' + fun)
+            }
         }
     }).catch((err) => {
         if (err.response && err.response.status == 401) {
             window.goUrl = window.location.hash
             window.gk.login = false;
             window.gk.user = {};
-            Cookies.remove('token');
+            Cookies.remove('webToken');
             th.$router.replace('/p/user/login')
             vm.$emit("data", window.gk)
         } else {
@@ -49,9 +57,6 @@ Vue.component('go', function (resolve) {
 })
 Vue.component('gk-body', function (resolve) {
     require(['./libs/frame/gkBody.vue'], resolve)
-})
-Vue.component('base-page', function (resolve) {
-    require(['../components/base-table.vue'], resolve)
 })
 
 Vue.component('user-info', function (resolve) {
@@ -82,5 +87,3 @@ window.vgo = (url, o) => {
         vm.$emit("msgClick", o.parentNode.getAttribute("msg-id"))
     vm.$router.replace(url)
 };
-
-Cookies.set("ua", "web");

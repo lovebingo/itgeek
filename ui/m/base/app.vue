@@ -1,12 +1,9 @@
 <template>
-    <div id="main" class="app-main">
-        <div class="cell hd">
-
+    <div id="main" style="word-break: break-all;width: 100%;">
+        <div class="hd">
              <span class="fl" v-if="!gk.site.Logo || gk.site.Logo==''" style="font-weight: bold">
                  <router-link to="/">{{gk.site.SiteName}}</router-link>
               </span>
-
-
             <router-link v-if="gk.site.Logo && gk.site.Logo!=''" class="fl" to="/" :title="gk.site.SiteName">
                 <img :src="gk.site.Logo" height="50"/>
             </router-link>
@@ -24,7 +21,13 @@
                     </span>
             </span>
         </div>
-        <router-view></router-view>
+
+        <div style="text-align: center;background-color: #e2e2e2;">
+            <div style="padding: 5px;width: auto;">
+                <router-view></router-view>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -37,6 +40,9 @@ export default {
         this.ajax('/gk-user/site', {}, (r, t) => {
             if (r.site && r.site.length > 2) {
                 gk.site = JSON.parse(r.site);
+                if (!gk.site.dw) {
+                    gk.site.dw = '铜币';
+                }
                 gk.siteId = r.SiteId;
                 document.title = gk.site.SiteName;
             }
@@ -44,85 +50,86 @@ export default {
                 gk.login = true;
                 gk.user = r.Info;
             } else {
-                Cookies.remove("token");
+                Cookies.remove("h5Token");
                 gk.user = {};
                 gk.login = false;
             }
-            vm.$emit("data", gk)
         })
     }, methods: {
         loginOut() {
             window.gk.login = false;
             Cookies.remove("username");
-            Cookies.remove("token");
+            Cookies.remove("h5Token");
             vm.$emit("login", false);
         }
     }
 };
 </script>
-<style>
-    a:active, a:link, a:visited {
-        color: #778087;
-        text-decoration: none;
-        word-break: break-all;
-    }
+<style>.nav {
+    padding: 5px;
+}
 
-    .hd {
-        height: 25px;
-        line-height: 25px;
-    }
+.nav span {
+    padding: 0 8px
+}
 
-    .app-main {
-        word-break: break-all;
-        width: 100%;
-        height: 100%;
-    }
+.h10 {
+    height: 10px;
+    width: 100%
+}
 
-    .nav {
-        clear: both;
-        float: left;
-        display: block;
-        padding: 10px;
-    }
+div.box {
+    display: block;
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, .1);
+    border-bottom: 1px solid #e2e2e2;
+    padding-bottom: 10px;
+    text-align: left;
+    clear: both;
+}
 
-    .nav span {
-        font-weight: 500;
-        padding: 0 10px;
-    }
+a:active, a:link, a:visited {
+    color: #778087;
+    text-decoration: none;
+    word-break: break-all;
+}
 
-    .bar {
-        display: block;
-        width: 100%;
-        clear: both;
-        float: left;
-    }
+.hd {
 
-    .cell {
-        display: block;
-        width: 100%;
-        clear: both;
-        float: left;
-        padding: 10px 0;
-        line-height: 120%;
-        text-align: left;
-        border-bottom: 1px solid #e2e2e2;
-    }
+    padding: 10px 5px;
+    text-align: center;
+    background-color: #fff;
+    height: 25px;
+    line-height: 25px;
+    font-size: 15px;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(0, 0, 0, .22);
+}
 
-    .fl {
-        float: left;
-    }
+.fl {
+    float: left;
+}
 
-    .fr {
-        padding-right: 10px;
-        float: right;
-    }
+.fr {
+    padding-right: 10px;
+    float: right;
+}
 
-    li {
-        list-style: none;
-        /*float: left;*/
-    }
+li {
+    list-style: none;
+    /*float: left;*/
+}
 
-    .small {
-        font-size: 11px;
-    }
+.small {
+    font-size: 11px;
+}
+
+.cell {
+    padding: 10px;
+    font-size: 14px;
+    line-height: 120%;
+    text-align: left;
+    border-bottom: 1px solid #e2e2e2;
+}
 </style>

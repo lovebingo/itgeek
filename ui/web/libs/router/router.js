@@ -27,6 +27,11 @@ export const routers = [
             r(() => import('@/topic/detail.vue'), 'topic/detail,:id', ''),
 
 
+            r(() => import('@/down/index.vue'), 'down'),
+            r(() => import('@/notes/hot.vue'), 'note'),
+
+
+            r(() => import('@/down/item.vue'), 'down/item,:s'),
         ]
     },
     {
@@ -41,16 +46,23 @@ export const routers = [
             r(() => import('@/notes/newMarkdown.vue'), 'notes_newMarkdown', '创建笔记'),
             r(() => import('@/notes/category.vue'), 'notes_category', '笔记分类管理'),
             r(() => import('@/notes/detail.vue'), 'notes/item/:id', ''),
+
+
+            r(() => import('@/down/my.vue'), 'down_my'),
+            r(() => import('@/down/upload.vue'), 'down_upload'),
         ]
     },
     {
         auth: true, path: '/', component: frame,
         children: [
-            r(() => import('@/my/balance'), 'my_balance', '账户余额'),
+            r(() => import('@/my/balance'), 'my/balance,:id', '账户余额'),
             r(() => import('@/my/setting.vue'), 'my_setting', '设置'),
             r(() => import('@/my/LoginAward'), 'my_LoginAward', '领取今日登录奖励'),
             r(() => import('@/user/topPlayer'), 'user_topPlayer', '社区消费排行榜'),
             r(() => import('@/my/msg.vue'), 'my_msg', '消息'),
+
+            r(() => import('@/topic/append.vue'), 'topic/append,:id', '增加附言'),
+
         ]
     },
     {

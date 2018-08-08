@@ -1,3 +1,8 @@
 /ui/node_modules
 /ui/dist
 /ui/package-lock.json
+/ui/*.zip
+/*.cmd
+/gk/cmd/gk_test.go
+/*.iml
+/tools/*.exe

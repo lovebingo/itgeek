@@ -14,22 +14,26 @@
                 <div class="h">
                     <ul>
                         <li>
-                            <router-link to="/p/topic/list,0,0,1">主题</router-link>
+                            <go to="/p/topic/list,0,0,1">主题</go>
                         </li>
                         <!--<li>文章</li>-->
                         <!--<li>-->
                         <!--<router-link to="/p/DevOps">项目/DevOps</router-link>-->
                         <!--</li>-->
-                        <!--<li>下载</li>-->
+                        <!--<li>-->
+                        <!--<go to="note">热门笔记</go>-->
+                        <!--</li>-->
+                        <li>
+                            <go to="down">下载</go>
+                        </li>
                     </ul>
                 </div>
 
                 <div class="fr">
-                    <router-link to="/">首页</router-link>
                     <span v-if="gk.login">
                         {{gk.user.Username}}
-                        <router-link to="/p/notes/list">笔记</router-link>
-                        <router-link to="/p/my/setting">设置</router-link>
+                        <go to="notes/list">笔记</go>
+                        <go to="my/setting">设置</go>
                           <a @click="loginOut">登出</a>
                     </span>
                     <span v-else>
@@ -61,7 +65,7 @@
         }, methods: {
             loginOut() {
                 gk.login = false;
-                Cookies.remove("token");
+                Cookies.remove("webToken");
                 vm.$emit("login", false);
                 this.$router.push("/")
             }
@@ -71,12 +75,15 @@
                     gk.site = JSON.parse(r.site);
                     gk.siteId = r.SiteId;
                     document.title = gk.site.SiteName;
+                    if (!gk.site.dw) {
+                        gk.site.dw = '铜币';
+                    }
                 }
                 if (r.Login) {
                     gk.login = true;
                     gk.user = r.Info;
                 } else {
-                    Cookies.remove("token");
+                    Cookies.remove("webToken");
                     gk.user = {};
                     gk.login = false;
                 }

@@ -8,21 +8,20 @@ const r = function (c, n, t) {
 
 export const routers = [
 
-    r(() => import('@/topic/detail.vue'), 'topic/detail,:id', ''),
-
-    r(() => import('@/base/home.vue'), 'topic/list,:id', ''),
-    
+    r(() => import('@/topic/detail.vue'), 'topic/detail,:id'),
+    r(() => import('@/base/home.vue'), 'topic/list,:id'),
+    r(() => import('@/my/LoginAward'), 'my_LoginAward'),
+    r(() => import('@/my/balance'), 'my/balance,:id', '账户余额'),
+    r(() => import('@/user/login.vue'), 'user_login', '登录'),
+    r(() => import('@/user/member.vue'), 'member/:id', ''),
+    r(() => import('@/user/dau.vue'), 'user_dau', '今日活跃会员'),
     {
     path: '/', component: Main,
     children: [
         {path: '/', name: 'home', component: () => import('@/base/home.vue'), title: '首页'},
 
-        r(() => import('@/user/login.vue'), 'user_login', '登录'),
         r(() => import('@/user/register.vue'), 'user_register', '注册'),
         r(() => import('@/user/forget.vue'), 'user_forget', '忘记密码'),
-
-        r(() => import('@/user/member.vue'), 'member/:id', ''),
-
         r(() => import('@/base/home.vue'), '', '首页'),
 
     ]

@@ -16,28 +16,40 @@ var (
 	DirUpload   string
 	ImgHost     string
 	ImgMaxWidth int
+	DownDir     string
 )
 
-func InitWeb(web *gin.Engine, verify func(c *gin.Context) (bool, int64)) {
+func InitWeb() {
 	DirUpload = ws.EnvParam("UploadDir")
-	ImgHost =  ws.EnvParam("ImgHost")
+	ImgHost = ws.EnvParam("ImgHost")
+	DownDir = ws.EnvParam("DownDir")
 	ImgMaxWidth = ws.EnvParamInt("ImgMaxWidth", 800)
 	os.MkdirAll(DirUpload, 0777)
-	web.POST("/api/gk-upload/upload", func(ctx *gin.Context) {
-		b, _ := verify(ctx)
-		if b {
-			DoUpload(ctx, fmt.Sprint(ws.SiteId(ctx)))
+
+	ws.WebGin.Static("/upload", "./upload")
+
+	ws.WebGin.POST("/api/gk-upload/upload", func(ctx *gin.Context) {
+		web := ws.Verify(ctx)
+		if web.Auth {
+			DoUpload(ctx, fmt.Sprint(web.SiteId))
 		} else {
 			ctx.Status(401)
 		}
 	})
-	web.POST("/api/gk-upload/Avatar", func(ctx *gin.Context) {
-		b, userId := verify(ctx)
-		if b {
-			WebAvatar(ctx, fmt.Sprint(ws.SiteId(ctx)), userId)
+	ws.WebGin.POST("/api/gk-upload/Avatar", func(ctx *gin.Context) {
+		web := ws.Verify(ctx)
+		if web.Auth {
+			WebAvatar(ctx, fmt.Sprint(web.SiteId), web.UserId)
 		} else {
 			ctx.Status(401)
 		}
 	})
+
+	ws.WebGin.POST("/api/gk-upload/resUpload", WebUploadResource)
+	ws.WebAuth("/api/gk-upload/resPublic", WebPublicResource)
+	ws.WebAuth("/api/gk-upload/resInfo", WebResourceInfo)
+	ws.WebPost("/api/gk-upload/resList", WebResourceList)
+	ws.WebPost("/api/gk-upload/resDetail", WebResourceDetail)
+	ws.WebGin.GET("/api/gk-upload/resDown", WebResDownFile)
 
 }

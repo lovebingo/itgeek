@@ -37,18 +37,28 @@
                 <img :src="hdImg" border="0" style="max-height: 48px">
                 <Upload :on-success="onSuccess" :show-upload-list="false"
                         action="/api/gk-upload/Avatar">
-                    <Button type="ghost" icon="ios-cloud-upload-outline">上传头像</Button>
+                    <Button icon="ios-cloud-upload-outline">上传头像</Button>
                 </Upload>
+            </TabPane>
+            <TabPane label="修改密码">
+                <Form :labelWidth="80" style="width: 450px">
+                    <FormItem label="新密码">
+                        <Input v-model="pass" type="password"/>
+                    </FormItem>
+                    <FormItem>
+                        <Button @click="saveNewPass">保存</Button>
+                    </FormItem>
+                </Form>
             </TabPane>
         </Tabs>
     </card>
-
 </template>
 
 <script>
     export default {
         data() {
             return {
+                pass: '',
                 fm: {EditType: gk.user.EditType}, info: {}, privacy: 0, privacyMap: {note: '公开'}, v: 0
             }
         },
@@ -59,6 +69,13 @@
             },
         }
         , methods: {
+            saveNewPass() {
+                this.ajax('/gk-user/setting/upPass', {Password: this.pass}, function (r, th) {
+                    th.$Notice.success({
+                        title: '设置密码成功'
+                    });
+                })
+            },
             save() {
                 var max = 255;
                 if (this.privacyMap.note == '私有') {
